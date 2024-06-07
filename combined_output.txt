@@ -1,0 +1,330 @@
+## layout.js
+// app/layout.js
+import './globals.css'
+
+export const metadata = {
+  title: 'Movie List',
+  description: 'A simple movie list application',
+}
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+
+## page.js
+// app/page.js
+'use client'
+
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import Link from 'next/link'
+
+export default function Home() {
+  const [movies, setMovies] = useState([])
+  const [title, setTitle] = useState('')
+  const [rating, setRating] = useState('')
+  const [year, setYear] = useState('')
+  const [editMode, setEditMode] = useState(false)
+  const [movieId, setMovieId] = useState(null)
+
+  useEffect(() => {
+    fetchMovies()
+  }, [])
+
+  async function fetchMovies() {
+    const { data, error } = await supabase.from('movies').select('*')
+    if (error) {
+      console.error("Error fetching movies:", error)
+    } else {
+      setMovies(data || [])
+    }
+  }
+
+  async function addOrUpdateMovie() {
+    if (editMode) {
+      const { error } = await supabase.from('movies').update({ title, rating, year }).eq('id', movieId)
+      if (error) {
+        console.error("Error updating movie:", error)
+      }
+    } else {
+      const { data, error } = await supabase.from('movies').insert([{ title, rating, year }])
+      if (error) {
+        console.error("Error adding movie:", error)
+      } else {
+        setMovies((prevMovies) => [...prevMovies, ...(Array.isArray(data) ? data : [data])])
+      }
+    }
+    setTitle('')
+    setRating('')
+    setYear('')
+    setEditMode(false)
+    setMovieId(null)
+    window.location.reload(); // Reload the page after adding or updating the movie
+  }
+
+  async function deleteMovie(id) {
+    const { error } = await supabase.from('movies').delete().eq('id', id)
+    if (error) {
+      console.error("Error deleting movie:", error)
+    } else {
+      window.location.reload(); // Reload the page after deleting the movie
+    }
+  }
+
+  function editMovie(movie) {
+    setTitle(movie.title)
+    setRating(movie.rating)
+    setYear(movie.year)
+    setMovieId(movie.id)
+    setEditMode(true)
+  }
+
+  return (
+    <div>
+      <h1>Movie List</h1>
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Rating"
+        value={rating}
+        onChange={(e) => setRating(e.target.value)}
+      />
+      <input
+        type="number"
+        placeholder="Year"
+        value={year}
+        onChange={(e) => setYear(e.target.value)}
+      />
+      <button onClick={addOrUpdateMovie}>{editMode ? "Update Movie" : "Add Movie"}</button>
+      <ul>
+        {movies.map((movie) => (
+          movie && <li key={movie.id}>
+            <Link href={`/movies/${movie.id}`}>{movie.title} ({movie.year}) - Rating: {movie.rating}</Link>
+            <button onClick={() => editMovie(movie)}>Edit</button>
+            <button onClick={() => deleteMovie(movie.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+## api/movies/route.js
+// app/api/movies/route.js
+import { supabase } from '../../../lib/supabaseClient'
+
+export async function GET() {
+  const { data: movies, error } = await supabase.from('movies').select('*')
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(movies), { status: 200 })
+}
+
+export async function POST(request) {
+  const { title, rating, year } = await request.json()
+  const { data, error } = await supabase.from('movies').insert([{ title, rating, year }])
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 201 })
+}
+
+export async function PUT(request) {
+  const { id, ...updates } = await request.json()
+  const { data, error } = await supabase.from('movies').update(updates).eq('id', id)
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 200 })
+}
+
+export async function DELETE(request) {
+  const { id } = new URL(request.url).searchParams
+  const { data, error } = await supabase.from('movies').delete().eq('id', id)
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 200 })
+}
+
+## api/comments/route.js
+
+// app/api/comments/route.js
+import { supabase } from '../../../lib/supabaseClient'
+
+export async function GET(request) {
+  const movie_id = new URL(request.url).searchParams.get('movie_id')
+  const { data: comments, error } = await supabase.from('comments').select('*').eq('movie_id', movie_id).order('created_at', { ascending: true })
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(comments), { status: 200 })
+}
+
+export async function POST(request) {
+  const { movie_id, content } = await request.json()
+  const { data, error } = await supabase.from('comments').insert([{ movie_id, content }])
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 201 })
+}
+
+export async function PUT(request) {
+  const { id, ...updates } = await request.json()
+  const { data, error } = await supabase.from('comments').update(updates).eq('id', id)
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 200 })
+}
+
+export async function DELETE(request) {
+  const { id } = new URL(request.url).searchParams
+  const { data, error } = await supabase.from('comments').delete().eq('id', id)
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 200 })
+}
+
+## movies/[id]/page.js
+// app/movies/[id]/page.js
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '../../../lib/supabaseClient'
+
+export default function Movie({ params }) {
+  const { id } = params
+  const [movie, setMovie] = useState(null)
+  const [comments, setComments] = useState([])
+  const [commentContent, setCommentContent] = useState('')
+  const [editMode, setEditMode] = useState(false)
+  const [commentId, setCommentId] = useState(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    fetchMovie()
+    fetchComments()
+  }, [id])
+
+  async function fetchMovie() {
+    const { data, error } = await supabase.from('movies').select('*').eq('id', id).single()
+    if (error) {
+      console.error("Error fetching movie:", error)
+    } else {
+      setMovie(data)
+    }
+  }
+
+  async function fetchComments() {
+    const { data, error } = await supabase.from('comments').select('*').eq('movie_id', id).order('created_at', { ascending: true })
+    if (error) {
+      console.error("Error fetching comments:", error)
+    } else {
+      setComments(data || [])
+    }
+  }
+
+  async function addOrUpdateComment() {
+    if (editMode) {
+      const { error } = await supabase.from('comments').update({ content: commentContent }).eq('id', commentId)
+      if (error) {
+        console.error("Error updating comment:", error)
+      }
+    } else {
+      const { data, error } = await supabase.from('comments').insert([{ movie_id: id, content: commentContent }])
+      if (error) {
+        console.error("Error adding comment:", error)
+      } else {
+        setComments((prevComments) => [...prevComments, ...(Array.isArray(data) ? data : [data])])
+      }
+    }
+    setCommentContent('')
+    setEditMode(false)
+    setCommentId(null)
+    window.location.reload(); // Reload the page after adding or updating the comment
+  }
+
+  async function deleteComment(commentId) {
+    const { error } = await supabase.from('comments').delete().eq('id', commentId)
+    if (error) {
+      console.error("Error deleting comment:", error)
+    } else {
+      window.location.reload(); // Reload the page after deleting the comment
+    }
+  }
+
+  function editComment(comment) {
+    setCommentContent(comment.content)
+    setCommentId(comment.id)
+    setEditMode(true)
+  }
+
+  if (!movie) return <div>Loading...</div>
+
+  return (
+    <div>
+      <h1>{movie.title} ({movie.year}) - Rating: {movie.rating}</h1>
+      <h2>Comments</h2>
+      <input
+        type="text"
+        placeholder="Add a comment"
+        value={commentContent}
+        onChange={(e) => setCommentContent(e.target.value)}
+      />
+      <button onClick={addOrUpdateComment}>{editMode ? "Update Comment" : "Add Comment"}</button>
+      <ul>
+        {comments.map((comment) => (
+          comment && <li key={comment.id}>
+            {comment.content}
+            <button onClick={() => editComment(comment)}>Edit</button>
+            <button onClick={() => deleteComment(comment.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+
+## globals.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+## supabaseClient.js
+// lib/supabaseClient.js
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
