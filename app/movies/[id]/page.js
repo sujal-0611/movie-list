@@ -1,3 +1,4 @@
+
 // app/movies/[id]/page.js
 'use client'
 

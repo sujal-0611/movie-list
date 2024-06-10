@@ -1,3 +1,57 @@
+/* globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 229, 204, 255; /* Light purple start color */
+  --background-end-rgb: 255, 255, 255; /* White end color */
+  --input-background-light: 255, 255, 255; /* White input background for light mode */
+  --input-color-light: 0, 0, 0; /* Black input text color for light mode */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 75, 0, 130; /* Darker purple for dark mode */
+    --background-end-rgb: 75, 0, 130; /* Darker purple for dark mode */
+    --input-background-dark: 30, 30, 30; /* Dark input background for dark mode */
+    --input-color-dark: 255, 255, 255; /* White input text color for dark mode */
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+input {
+  background-color: rgb(var(--input-background-light));
+  color: rgb(var(--input-color-light));
+}
+
+@media (prefers-color-scheme: dark) {
+  input {
+    background-color: rgb(var(--input-background-dark));
+    color: rgb(var(--input-color-dark));
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+
+/* 
+// globals.css 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -31,3 +85,4 @@ body {
     text-wrap: balance;
   }
 }
+ */
