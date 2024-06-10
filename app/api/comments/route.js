@@ -1,4 +1,3 @@
-
 // app/api/comments/route.js
 import { supabase } from '../../../lib/supabaseClient'
 

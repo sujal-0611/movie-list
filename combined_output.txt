@@ -67,6 +67,142 @@ export default function Home() {
   }
 
   async function deleteMovie(id) {
+    try {
+      const response = await fetch(`/api/movies?id=${id}`, {
+        method: 'DELETE'
+      })
+      if (!response.ok) {
+        const { error } = await response.json()
+        throw new Error(error)
+      }
+      window.location.reload() // Reload the page after deleting the movie
+    } catch (error) {
+      console.error("Error deleting movie:", error)
+    }
+  }
+
+  function editMovie(movie) {
+    setTitle(movie.title)
+    setRating(movie.rating)
+    setYear(movie.year)
+    setMovieId(movie.id)
+    setEditMode(true)
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">Movie List</h1>
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <input
+          type="number"
+          placeholder="Rating"
+          value={rating}
+          onChange={(e) => setRating(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <input
+          type="number"
+          placeholder="Year"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <button
+          onClick={addOrUpdateMovie}
+          className="bg-blue-500 text-white p-2 rounded-lg w-full"
+        >
+          {editMode ? "Update Movie" : "Add Movie"}
+        </button>
+      </div>
+      <ul className="space-y-4">
+        {movies.map((movie) => (
+          movie && (
+            <li key={movie.id} className="border rounded-lg p-4 flex justify-between items-center">
+              <Link href={`/movies/${movie.id}`} className="text-lg font-semibold">
+                {movie.title} ({movie.year}) - Rating: {movie.rating}
+              </Link>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => editMovie(movie)}
+                  className="bg-yellow-500 text-white p-2 rounded-lg"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteMovie(movie.id)}
+                  className="bg-red-500 text-white p-2 rounded-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          )
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+
+/*
+// app/page.js
+'use client'
+
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import Link from 'next/link'
+
+export default function Home() {
+  const [movies, setMovies] = useState([])
+  const [title, setTitle] = useState('')
+  const [rating, setRating] = useState('')
+  const [year, setYear] = useState('')
+  const [editMode, setEditMode] = useState(false)
+  const [movieId, setMovieId] = useState(null)
+
+  useEffect(() => {
+    fetchMovies()
+  }, [])
+
+  async function fetchMovies() {
+    const { data, error } = await supabase.from('movies').select('*')
+    if (error) {
+      console.error("Error fetching movies:", error)
+    } else {
+      setMovies(data || [])
+    }
+  }
+
+  async function addOrUpdateMovie() {
+    if (editMode) {
+      const { error } = await supabase.from('movies').update({ title, rating, year }).eq('id', movieId)
+      if (error) {
+        console.error("Error updating movie:", error)
+      }
+    } else {
+      const { data, error } = await supabase.from('movies').insert([{ title, rating, year }])
+      if (error) {
+        console.error("Error adding movie:", error)
+      } else {
+        setMovies((prevMovies) => [...prevMovies, ...(Array.isArray(data) ? data : [data])])
+      }
+    }
+    setTitle('')
+    setRating('')
+    setYear('')
+    setEditMode(false)
+    setMovieId(null)
+    window.location.reload(); // Reload the page after adding or updating the movie
+  }
+
+  async function deleteMovie(id) {
     const { error } = await supabase.from('movies').delete().eq('id', id)
     if (error) {
       console.error("Error deleting movie:", error)
@@ -84,41 +220,108 @@ export default function Home() {
   }
 
   return (
-    <div>
-      <h1>Movie List</h1>
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Rating"
-        value={rating}
-        onChange={(e) => setRating(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Year"
-        value={year}
-        onChange={(e) => setYear(e.target.value)}
-      />
-      <button onClick={addOrUpdateMovie}>{editMode ? "Update Movie" : "Add Movie"}</button>
-      <ul>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">Movie List</h1>
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <input
+          type="number"
+          placeholder="Rating"
+          value={rating}
+          onChange={(e) => setRating(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <input
+          type="number"
+          placeholder="Year"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <button
+          onClick={addOrUpdateMovie}
+          className="bg-blue-500 text-white p-2 rounded-lg w-full"
+        >
+          {editMode ? "Update Movie" : "Add Movie"}
+        </button>
+      </div>
+      <ul className="space-y-4">
         {movies.map((movie) => (
-          movie && <li key={movie.id}>
-            <Link href={`/movies/${movie.id}`}>{movie.title} ({movie.year}) - Rating: {movie.rating}</Link>
-            <button onClick={() => editMovie(movie)}>Edit</button>
-            <button onClick={() => deleteMovie(movie.id)}>Delete</button>
-          </li>
+          movie && (
+            <li key={movie.id} className="border rounded-lg p-4 flex justify-between items-center">
+              <Link href={`/movies/${movie.id}`} className="text-lg font-semibold">
+                {movie.title} ({movie.year}) - Rating: {movie.rating}
+              </Link>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => editMovie(movie)}
+                  className="bg-yellow-500 text-white p-2 rounded-lg"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteMovie(movie.id)}
+                  className="bg-red-500 text-white p-2 rounded-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          )
         ))}
       </ul>
     </div>
   )
 }
 
+*/
 ## api/movies/route.js
+// app/api/movies/route.js
+import { supabase } from '../../../lib/supabaseClient'
+
+export async function GET() {
+  const { data: movies, error } = await supabase.from('movies').select('*')
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(movies), { status: 200 })
+}
+
+export async function POST(request) {
+  const { title, rating, year } = await request.json()
+  const { data, error } = await supabase.from('movies').insert([{ title, rating, year }])
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 201 })
+}
+
+export async function PUT(request) {
+  const { id, ...updates } = await request.json()
+  const { data, error } = await supabase.from('movies').update(updates).eq('id', id)
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+  return new Response(JSON.stringify(data), { status: 200 })
+}
+
+export async function DELETE(request) {
+  const { id } = new URL(request.url).searchParams
+
+  // Delete comments associated with the movie
+  const { error: deleteCommentsError } = await supabase.from('comments').delete().eq('movie_id', id)
+  if (deleteCommentsError) return new Response(JSON.stringify({ error: deleteCommentsError.message }), { status: 500 })
+
+  // Delete the movie
+  const { data, error } = await supabase.from('movies').delete().eq('id', id)
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+
+  return new Response(JSON.stringify(data), { status: 200 })
+}
+
+
+
+/*
 // app/api/movies/route.js
 import { supabase } from '../../../lib/supabaseClient'
 
@@ -149,8 +352,8 @@ export async function DELETE(request) {
   return new Response(JSON.stringify(data), { status: 200 })
 }
 
+*/
 ## api/comments/route.js
-
 // app/api/comments/route.js
 import { supabase } from '../../../lib/supabaseClient'
 
@@ -181,7 +384,6 @@ export async function DELETE(request) {
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   return new Response(JSON.stringify(data), { status: 200 })
 }
-
 ## movies/[id]/page.js
 // app/movies/[id]/page.js
 'use client'
@@ -260,28 +462,52 @@ export default function Movie({ params }) {
   if (!movie) return <div>Loading...</div>
 
   return (
-    <div>
-      <h1>{movie.title} ({movie.year}) - Rating: {movie.rating}</h1>
-      <h2>Comments</h2>
-      <input
-        type="text"
-        placeholder="Add a comment"
-        value={commentContent}
-        onChange={(e) => setCommentContent(e.target.value)}
-      />
-      <button onClick={addOrUpdateComment}>{editMode ? "Update Comment" : "Add Comment"}</button>
-      <ul>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">{movie.title} ({movie.year}) - Rating: {movie.rating}</h1>
+      <h2 className="text-2xl font-semibold mb-4">Comments</h2>
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Add a comment"
+          value={commentContent}
+          onChange={(e) => setCommentContent(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <button
+          onClick={addOrUpdateComment}
+          className="bg-blue-500 text-white p-2 rounded-lg w-full"
+        >
+          {editMode ? "Update Comment" : "Add Comment"}
+        </button>
+      </div>
+      <ul className="space-y-4">
         {comments.map((comment) => (
-          comment && <li key={comment.id}>
-            {comment.content}
-            <button onClick={() => editComment(comment)}>Edit</button>
-            <button onClick={() => deleteComment(comment.id)}>Delete</button>
-          </li>
+          comment && (
+            <li key={comment.id} className="border rounded-lg p-4 flex justify-between items-center">
+              {comment.content}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => editComment(comment)}
+                  className="bg-yellow-500 text-white p-2 rounded-lg"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteComment(comment.id)}
+                  className="bg-red-500 text-white p-2 rounded-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          )
         ))}
       </ul>
     </div>
   )
 }
+
+
 
 
 ## globals.css

@@ -1,3 +1,4 @@
+
 // app/page.js
 'use client'
 
@@ -49,11 +50,18 @@ export default function Home() {
   }
 
   async function deleteMovie(id) {
-    const { error } = await supabase.from('movies').delete().eq('id', id)
-    if (error) {
+    try {
+      const response = await fetch(`/api/movies?id=${id}`, {
+        method: 'DELETE'
+      })
+      if (!response.ok) {
+        const { error } = await response.json()
+        throw new Error(error)
+      }
+      // Optimistically update the UI
+      setMovies((prevMovies) => prevMovies.filter(movie => movie.id !== id))
+    } catch (error) {
       console.error("Error deleting movie:", error)
-    } else {
-      window.location.reload(); // Reload the page after deleting the movie
     }
   }
 
@@ -66,36 +74,64 @@ export default function Home() {
   }
 
   return (
-    <div>
-      <h1>Movie List</h1>
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Rating"
-        value={rating}
-        onChange={(e) => setRating(e.target.value)}
-      />
-      <input
-        type="number"
-        placeholder="Year"
-        value={year}
-        onChange={(e) => setYear(e.target.value)}
-      />
-      <button onClick={addOrUpdateMovie}>{editMode ? "Update Movie" : "Add Movie"}</button>
-      <ul>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">Movie List</h1>
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <input
+          type="number"
+          placeholder="Rating"
+          value={rating}
+          onChange={(e) => setRating(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <input
+          type="number"
+          placeholder="Year"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+          className="border rounded-lg p-2 w-full mb-4"
+        />
+        <button
+          onClick={addOrUpdateMovie}
+          className="bg-blue-500 text-white p-2 rounded-lg w-full"
+        >
+          {editMode ? "Update Movie" : "Add Movie"}
+        </button>
+      </div>
+      <ul className="space-y-4">
         {movies.map((movie) => (
-          movie && <li key={movie.id}>
-            <Link href={`/movies/${movie.id}`}>{movie.title} ({movie.year}) - Rating: {movie.rating}</Link>
-            <button onClick={() => editMovie(movie)}>Edit</button>
-            <button onClick={() => deleteMovie(movie.id)}>Delete</button>
-          </li>
+          movie && (
+            <li key={movie.id} className="border rounded-lg p-4 flex justify-between items-center">
+              <Link href={`/movies/${movie.id}`} className="text-lg font-semibold">
+                {movie.title} ({movie.year}) - Rating: {movie.rating}
+              </Link>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => editMovie(movie)}
+                  className="bg-yellow-500 text-white p-2 rounded-lg"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteMovie(movie.id)}
+                  className="bg-red-500 text-white p-2 rounded-lg"
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          )
         ))}
       </ul>
     </div>
   )
 }
+
+
