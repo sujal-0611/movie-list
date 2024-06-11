@@ -88,29 +88,28 @@ Follow these instructions to set up the project on Vercel and on your local mach
    ```
     NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-     
    ```
-  -  Click the Deploy button to deploy your application.
+   -  Click the Deploy button to deploy your application.
        
 **The Project is now Deployed successfully and using the link the Vercel sent you , now you can access the project easily**
 **My Project can be accessed using this [LINK](https://movie-list-7tr3.vercel.app/).**
        
   # Running the Project Locally
-    -  Clone the GitHub Repository to location of your choice in your PC.
-    -  Open the Git bash in that folder and enter the following command.
-    ```
+  -  Clone the GitHub Repository to location of your choice in your PC.
+  -  Open the Git bash in that folder and enter the following command.
+  ```
     git clone https://github.com/your-username/movie-list.git
     cd movie-list
-    
-    ```
-    -  Install Dependencies
-    ```
+  ```
+  -  Install Dependencies
+  ```
     npm install
-    ```
-    -  Start the Developement Server
-    ```
+  ```
+  -  Start the Development Server
+  ```
     npm run dev
-    ```
+  ```
+  
 **The project is now can be access using [http://localhost:3000](http://localhost:3000)**
 
 # Contributing
