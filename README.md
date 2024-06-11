@@ -62,7 +62,7 @@ Follow these instructions to set up the project on Vercel and on your local mach
      ```
                
    # 4.  Setup Supabase
-   -  Sign up at Supabase and create a new project.
+   -  Sign up at [Supabase](https://supabase.com/) and create a new project.
    -  Create a table named movies with the following columns: id (UUID), title (text), rating (numeric), year (integer).
    -  Create a table named comments with the following columns: id (UUID), content (text), movie_id (UUID), created_at (timestamp).  
     
