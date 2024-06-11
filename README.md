@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+Read more at my Medium [Article](https://medium.com/@sujalsharma0611/project-movie-list-34eb53824c23)
+
 # # Movie List
 A simple web application for managing a list of movies. Users can add, update, delete movies, and add comments to each movie.
 
