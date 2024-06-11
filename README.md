@@ -91,6 +91,7 @@ Follow these instructions to set up the project on Vercel and on your local mach
   -  Click the Deploy button to deploy your application.
        
 **The Project is now Deployed successfully and using the link the Vercel sent you , now you can access the project easily**
+**My Project can be accessed using this [LINK](https://movie-list-7tr3.vercel.app/).**
        
   # Running the Project Locally
     -  Clone the GitHub Repository to location of your choice in your PC.
